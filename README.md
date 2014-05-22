@@ -6,7 +6,7 @@ A database programmer's treasury of useful and (sometimes) ugly SQL query script
 **... Actually, the name "ugly" is not entirely accurate. I have enjoyed many years of discovering ways to apply SQL in the area of understanding the use of databases for challenging problems.** 
 
 ## Getting Started
-Be sure to check out the wiki site for this project to get more information on how to use the resources made available at this GitHub project.
+Be sure to check out the [project wiki site](https://github.com/richardpascual/uglysql/wiki) for this project to get more information on how to use the resources made available at this GitHub project.  There is also a [blog](http://uglysql.com) for additional commentary and periodic articles on topics on SQL and programming for databases.
 
 ## Conventions and Versions
 These tutorials were written with ORACLE database in mind although some (but not all) of the code samples provided in this project will work in almost any relational database management system (RDBMS) with minimal or no additional adaptions.
