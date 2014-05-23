@@ -1,33 +1,44 @@
--- first version. borrowed from solution contribution by:
+-- Borrowed from solution contribution by:
 -- http://stackoverflow.com/users/232279/thinkjet
 -- sourced at: 
 -- http://stackoverflow.com/questions/23808993/manipulating-collections
 
-declare
-  l_object tbl_list2;
-  i        number;
-begin
-  -- for list initialization it must be filled with constructed objects
-  l_object := tbl_list2( tbl_list_rec('','') );
+	
 
-  for i in 1..100000 loop          
+    CREATE OR REPLACE TYPE tbl_list_rec2 AS OBJECT (
+      l_owner  VARCHAR2(64),
+      l_name  VARCHAR2(64),
+      map member FUNCTION get_key RETURN VARCHAR2
+    );
+    /
+     
+    CREATE OR REPLACE TYPE BODY tbl_list_rec2 AS
+     
+      map member FUNCTION get_key RETURN VARCHAR2
+      IS
+      BEGIN
+        RETURN l_owner||CHR(1)||l_name;
+      END;
+     
+    END;
+    /
+     
+    DECLARE
+      l_object tbl_list2a;
+      i        NUMBER;
+    BEGIN
+      l_object := tbl_list2a( tbl_list_rec2('','') );
+     
+      FOR i IN 1..100000 LOOP          
+        l_object := l_object MULTISET UNION DISTINCT tbl_list2a(tbl_list_rec2('myOwner','MyTable'));
+      END LOOP;
+     
+      FOR i IN l_object.FIRST..  l_object.LAST LOOP
+        DBMS_OUTPUT.put_line(l_object(i).l_owner || ',' || l_object(i).l_name);
+      END LOOP;  
+     
+    END;
+    /
 
-    -- 1. select values to variable
-    -- 2. Fix constructor for list 
-    select 
-      l_object MULTISET UNION DISTINCT tbl_list2(tbl_list_rec('myOwner','MyTable'))
-    into 
-      l_object 
-    from 
-      dual;
 
-    end loop;
 
-    for i in l_object.first ..  l_object.last loop
-      -- output separate fields, there are now default conversion from 
-      -- user-defined objects to varchar2.
-      dbms_output.put_line(l_object(i).l_owner || ',' || l_object(i).l_name);
-    end loop;  
-
-end;
-/
