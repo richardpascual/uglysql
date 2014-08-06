@@ -1,0 +1,192 @@
+    -- Project UGLYSQL: http://github.com/richardpascual/uglysql
+    -- The following SQLPlus Script creates tables for the 
+    -- schema called "Department of Justice (DOJ)"
+    -- Created by: richardpascual (pascualrg1@gmail.com)
+
+
+	-- The "UGLYSQL" Project is a collection of working database schemas, scripts
+	   -- and PL/SQL code intended to show different principles in programming queries
+       -- on the Oracle database platform.	
+    
+	-- Copyright (C) 2014  Rich Pascual <pascualrg1@gmail.com>
+
+    -- This program is free software: you can redistribute it and/or modify
+    -- it under the terms of the GNU General Public License as published by
+    -- the Free Software Foundation, either version 3 of the License, or
+    -- (at your option) any later version.
+
+    -- This program is distributed in the hope that it will be useful,
+    -- but WITHOUT ANY WARRANTY; without even the implied warranty of
+    -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    -- GNU General Public License for more details.
+
+    -- You should have received a copy of the GNU General Public License
+    -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+CREATE SEQUENCE   "DOJ_PERSON_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER  NOCYCLE
+/
+
+CREATE SEQUENCE   "DOJ_STAFF_ROLE_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER  NOCYCLE
+/
+
+CREATE SEQUENCE   "DOJ_CRIME_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER  NOCYCLE
+/
+
+CREATE SEQUENCE   "DOJ_CRIME_ASSOC_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 41 CACHE 20 NOORDER  NOCYCLE
+/
+
+CREATE SEQUENCE   "DOJ_CRIME_REPORT_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER  NOCYCLE
+/
+
+
+CREATE TABLE  "DOJ_PERSON" 
+   (	"PERSON_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"PERSON_NAME" VARCHAR2(100) NOT NULL ENABLE, 
+	"DATE_OF_BIRTH" DATE, 
+	"DATE_ADDED" DATE, 
+	"DATE_MODIFIED" DATE, 
+	 CONSTRAINT "DOJ_PERSON_PK" PRIMARY KEY ("PERSON_ID")
+  USING INDEX  ENABLE
+   )
+/
+
+
+CREATE OR REPLACE TRIGGER  "BI_DOJ_PERSON" 
+  before insert on "DOJ_PERSON"               
+  for each row  
+begin   
+  if :NEW."PERSON_ID" is null then 
+    select "DOJ_PERSON_SEQ".nextval into :NEW."PERSON_ID" from sys.dual; 
+  end if; 
+end; 
+
+/
+ALTER TRIGGER  "BI_DOJ_PERSON" ENABLE
+/
+
+CREATE TABLE  "DOJ_STAFF_ROLE" 
+   (	"PERSON_ROLE_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"PERSON_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"STAFF_ROLE" VARCHAR2(40) NOT NULL ENABLE, 
+	"STAFF_TITLE" VARCHAR2(40) NOT NULL ENABLE, 
+	"DATE_ASSIGNED" DATE NOT NULL ENABLE, 
+	"DATE_SUSPENDED" DATE, 
+	 CONSTRAINT "DOJ_STAFF_ROLE_PK" PRIMARY KEY ("PERSON_ROLE_ID")
+  USING INDEX  ENABLE
+   )
+/
+ALTER TABLE  "DOJ_STAFF_ROLE" ADD CONSTRAINT "DOJ_STAFF_ROLE_FK" FOREIGN KEY ("PERSON_ID")
+	  REFERENCES  "DOJ_PERSON" ("PERSON_ID") ENABLE
+/
+
+
+CREATE OR REPLACE TRIGGER  "BI_DOJ_STAFF_ROLE" 
+  before insert on "DOJ_STAFF_ROLE"               
+  for each row  
+begin   
+  if :NEW."PERSON_ROLE_ID" is null then 
+    select "DOJ_STAFF_ROLE_SEQ".nextval into :NEW."PERSON_ROLE_ID" from sys.dual; 
+  end if; 
+end; 
+
+/
+ALTER TRIGGER  "BI_DOJ_STAFF_ROLE" ENABLE
+/
+
+CREATE TABLE  "DOJ_CRIME" 
+   (	"CRIME_NO" NUMBER(15,0) NOT NULL ENABLE, 
+	"CRIME_DETAIL" VARCHAR2(100), 
+	"LOCATION" VARCHAR2(40), 
+	"DATE_REPORTED" DATE NOT NULL ENABLE, 
+	 CONSTRAINT "DOJ_CRIME_PK" PRIMARY KEY ("CRIME_NO")
+  USING INDEX  ENABLE
+   )
+/
+
+
+CREATE OR REPLACE TRIGGER  "BI_DOJ_CRIME" 
+  before insert on "DOJ_CRIME"               
+  for each row  
+begin   
+  if :NEW."CRIME_NO" is null then 
+    select "DOJ_CRIME_SEQ".nextval into :NEW."CRIME_NO" from sys.dual; 
+  end if; 
+end; 
+
+/
+ALTER TRIGGER  "BI_DOJ_CRIME" ENABLE
+/
+
+
+CREATE TABLE  "DOJ_CRIME_ASSOC" 
+   (	"CRIME_ASSOC_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"REPORT_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"PERSON_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"PRIMARY_ROLE" VARCHAR2(40) NOT NULL ENABLE, 
+	 CONSTRAINT "DOJ_CRIME_ASSOC_PK" PRIMARY KEY ("CRIME_ASSOC_ID")
+  USING INDEX  ENABLE, 
+	 CONSTRAINT "DOJ_CRIME_ASSOC_UK1" UNIQUE ("REPORT_ID", "PERSON_ID", "PRIMARY_ROLE")
+  USING INDEX  ENABLE
+   )
+/
+ALTER TABLE  "DOJ_CRIME_ASSOC" ADD CONSTRAINT "DOJ_CRIME_ASSOC_FK" FOREIGN KEY ("REPORT_ID")
+	  REFERENCES  "DOJ_CRIME_REPORT" ("REPORT_ID") ENABLE
+/
+ALTER TABLE  "DOJ_CRIME_ASSOC" ADD CONSTRAINT "DOJ_CRIME_ASSOC_FK2" FOREIGN KEY ("PERSON_ID")
+	  REFERENCES  "DOJ_PERSON" ("PERSON_ID") ENABLE
+/
+
+
+CREATE OR REPLACE TRIGGER  "BI_DOJ_CRIME_ASSOC" 
+  before insert on "DOJ_CRIME_ASSOC"               
+  for each row  
+begin   
+  if :NEW."CRIME_ASSOC_ID" is null then 
+    select "DOJ_CRIME_ASSOC_SEQ".nextval into :NEW."CRIME_ASSOC_ID" from sys.dual; 
+  end if; 
+end; 
+
+/
+ALTER TRIGGER  "BI_DOJ_CRIME_ASSOC" ENABLE
+/
+
+CREATE TABLE  "DOJ_CRIME_REPORT" 
+   (	"REPORT_ID" NUMBER(10,0) NOT NULL ENABLE, 
+	"CRIME_NO" NUMBER(10,0) NOT NULL ENABLE, 
+	"INVESTIGATOR" NUMBER(10,0) NOT NULL ENABLE, 
+	"FILE_ID" VARCHAR2(50), 
+	"DISPOSITION" VARCHAR2(40), 
+	"CRIME_DESCRIPTION" VARCHAR2(100) NOT NULL ENABLE, 
+	"REPORT_DATE" DATE NOT NULL ENABLE, 
+	 CONSTRAINT "DOJ_CRIME_REPORT_PK" PRIMARY KEY ("REPORT_ID")
+  USING INDEX  ENABLE
+   )
+/
+ALTER TABLE  "DOJ_CRIME_REPORT" ADD CONSTRAINT "DOJ_CRIME_REPORT_FK" FOREIGN KEY ("CRIME_NO")
+	  REFERENCES  "DOJ_CRIME" ("CRIME_NO") ENABLE
+/
+ALTER TABLE  "DOJ_CRIME_REPORT" ADD CONSTRAINT "DOJ_CRIME_REPORT_FK2" FOREIGN KEY ("INVESTIGATOR")
+	  REFERENCES  "DOJ_STAFF_ROLE" ("PERSON_ROLE_ID") ENABLE
+/
+
+
+CREATE OR REPLACE TRIGGER  "BI_DOJ_CRIME_REPORT" 
+  before insert on "DOJ_CRIME_REPORT"               
+  for each row  
+begin   
+  if :NEW."REPORT_ID" is null then 
+    select "DOJ_CRIME_REPORT_SEQ".nextval into :NEW."REPORT_ID" from sys.dual; 
+  end if; 
+end; 
+
+/
+ALTER TRIGGER  "BI_DOJ_CRIME_REPORT" ENABLE
+/
+
+
+
+	
+
+	
